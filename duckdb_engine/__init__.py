@@ -38,6 +38,7 @@ from sqlalchemy.sql.selectable import Select
 from ._supports import has_comment_support
 from .config import apply_config, get_core_config
 from .datatypes import ISCHEMA_NAMES, register_extension_types
+from .preloadscripts import apply_preload_scripts
 
 __version__ = "0.13.7-pre0"
 sqlalchemy_version = sqlalchemy.__version__
@@ -261,6 +262,7 @@ class Dialect(PGDialect_psycopg2):
     def connect(self, *cargs: Any, **cparams: Any) -> "Connection":
         core_keys = get_core_config()
         preload_extensions = cparams.pop("preload_extensions", [])
+        preload_scripts = cparams.pop("preload_scripts", {})
         config = dict(cparams.get("config", {}))
         cparams["config"] = config
         config.update(cparams.pop("url_config", {}))
@@ -278,6 +280,7 @@ class Dialect(PGDialect_psycopg2):
             conn.execute(f"LOAD {extension}")
 
         apply_config(self, conn, ext)
+        apply_preload_scripts(conn, preload_scripts)
 
         return ConnectionWrapper(conn)
 
